@@ -1,0 +1,22 @@
+{
+  "name": "alexa-app-bootstrap",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matt-kruse/alexa-app-bootstrap.git"
+  },
+  "author": "Matt Kruse <github@mattkruse.com> (http://mattkruse.com/)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/matt-kruse/alexa-app-bootstrap/issues"
+  },
+  "homepage": "https://github.com/matt-kruse/alexa-app-bootstrap#readme",
+  "dependencies": {
+    "alexa-app": "^4.2.3"
+  }
+}

@@ -253,6 +253,7 @@ app.pre = async function (req, res) {
     user = request.getSession().get("user");
   }
   if (user===null) {
+    let user_id = request.data.session.userId;
     if (app.config.user_persistence_table) {
       try {
         let user_id = request.data.session.userId;
@@ -264,7 +265,9 @@ app.pre = async function (req, res) {
     }
     if (user === null) {
       // A new user
-      user = app.new_user_template(user_id);
+      if (typeof app.new_user_template==="function") {
+		user = app.new_user_template(user_id);
+	  }
       if (!user) { user = {}; }
       if (!user.experience) { user.experience={}; }
       user.request_number = 1;

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/matt-kruse/alexa-app-bootstrap#readme",
   "dependencies": {
-    "alexa-app": "^4.2.3"
+    "alexa-app": "^4.2.3",
+    "ddb-wrapper": "^1.0.0"
   }
 }

@@ -266,8 +266,8 @@ app.pre = async function (req, res) {
     if (user === null) {
       // A new user
       if (typeof app.new_user_template==="function") {
-		user = app.new_user_template(user_id);
-	  }
+		    user = app.new_user_template(user_id);
+	    }
       if (!user) { user = {}; }
       if (!user.experience) { user.experience={}; }
       user.request_number = 1;
@@ -628,6 +628,7 @@ module.exports = {
   ,'sayif': app.sayif
   ,'saylookup': app.saylookup
   ,'log': app.log
+  ,'ddb': ddb
   ,'lambda_handler': app.lambda_handler
 
   ,'YES':YES

@@ -141,6 +141,16 @@ app.config = {
 };
 app.outputSynonyms = {};
 
+// DynamoDB Access
+// ===============
+app.ddb = function(region) {
+  if (!app._ddb) {
+    let wrapper = require('ddb-wrapper');
+    app._ddb = new wrapper(region || 'us-east-1');
+  }
+  return app._ddb;
+};
+
 // LOGGING
 // =======
 app.log = function() {
@@ -257,7 +267,7 @@ app.pre = async function (req, res) {
     if (app.config.user_persistence_table) {
       try {
         let user_id = request.data.session.userId;
-        user = await ddb.get(app.config.user_persistence_table, app.config.user_persistence_key || "userid", user_id);
+        user = await app.ddb().get(app.config.user_persistence_table, app.config.user_persistence_key || "userid", user_id);
       }
       catch (e) {
         app.log(e);
@@ -548,7 +558,7 @@ app.on('AlexaSkillEvent.SkillPermissionAccepted', async()=>{
   try {
     let user_id = request.data.context.System.user.userId;
     app.log("Permission Accepted!", request.data.context.System.user.userId);
-//    user = await ddb.get(app.config.user_persistence_table, app.config.user_persistence_key, user_id);
+//    user = await app.ddb().get(app.config.user_persistence_table, app.config.user_persistence_key, user_id);
 //    app.log(user);
     let name = await app.api("/v2/accounts/~current/settings/Profile.name");
 //    app.log(name);
@@ -565,7 +575,7 @@ app.on('AlexaSkillEvent.SkillPermissionChanged', async()=>{
   try {
     let user_id = request.data.context.System.user.userId;
     app.log("Permission Changed!", request.data.context.System.user.userId);
-//    user = await ddb.get(app.config.user_persistence_table, app.config.user_persistence_key, user_id);
+//    user = await app.ddb().get(app.config.user_persistence_table, app.config.user_persistence_key, user_id);
 //    user.name = null;
 //    user.linked = false;
 //    await persist_user();
@@ -628,7 +638,6 @@ module.exports = {
   ,'sayif': app.sayif
   ,'saylookup': app.saylookup
   ,'log': app.log
-  ,'ddb': ddb
   ,'lambda_handler': app.lambda_handler
 
   ,'YES':YES

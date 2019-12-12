@@ -2,7 +2,9 @@ let alexa = require('alexa-app');
 // Store the request and response on each each request, for easy access
 let request = null;
 let response = null;
-let user = null;
+let user = {};
+
+const emptyObj = o => Object.getOwnPropertyNames(o).map(n=>delete o[n]) && o;
 
 // EXTEND REQUEST
 // ====================================
@@ -268,33 +270,35 @@ app.pre = async function (req, res) {
   // By default, leave session open for button input
   response.shouldEndSession(null);
 
+  let u = null;
+
   // If session already exists, use it.
   // Otherwise, load it
   if (request.hasSession() && request.getSession().get("user") != null) {
-    user = request.getSession().get("user");
+    u = request.getSession().get("user");
   }
-  if (user===null) {
+  if (u===null) {
     let user_id = request.data.session.userId;
     if (app.config.user_persistence_table) {
       try {
         let user_id = request.data.session.userId;
-        user = await app.ddb().get(app.config.user_persistence_table, app.config.user_persistence_key || "userid", user_id);
+        u = await app.ddb().get(app.config.user_persistence_table, app.config.user_persistence_key || "userid", user_id);
       }
       catch (e) {
         app.log(e);
       }
     }
-    if (user === null) {
+    if (u === null) {
       // A new user
       if (typeof app.new_user_template==="function") {
-		    user = app.new_user_template(user_id);
+		    u = app.new_user_template(user_id);
 	    }
-      if (!user) { user = {}; }
-      if (!user.experience) { user.experience={}; }
-      user.request_number = 0;
+      if (!u) { u = {}; }
+      if (!u.experience) { u.experience={}; }
+      u.request_number = 0;
     }
   }
-  user.request_number++;
+  u.request_number++;
 
   // Use STATE to define the intent handler
   if (request.type()==="LaunchRequest" && typeof app.intents["launch"] !== "undefined" && typeof app.intents["launch"].handler === "function") {
@@ -331,6 +335,7 @@ app.pre = async function (req, res) {
   // Store the intent in the user record for debugging
   user.intent = request.getState();
 
+  Object.assign(user,u);
   app.user = user;
   app.log( request.getState() );
 
@@ -375,7 +380,7 @@ app.post = async function () {
 function setContext(req,res) {
   request = req;
   response = res;
-  user = null;
+  emptyObj(user);
 }
 function _say_concat(strings,values) {
   let str = "";
@@ -652,6 +657,7 @@ app.lambda_handler = function(event, context, callback) {
 // ====================================
 module.exports = {
   'app': app
+  ,'user': user
   ,'say': app.say
   ,'ask': app.ask
   ,'sayif': app.sayif

@@ -1,4 +1,8 @@
 let alexa = require('alexa-app');
+// Store the request and response on each each request, for easy access
+let request = null;
+let response = null;
+let user = null;
 
 // EXTEND REQUEST
 // ====================================
@@ -105,6 +109,13 @@ alexa.response.prototype = {
       let ssml = this.response.response.outputSpeech.ssml;
       this.clear();
       this.say(`<voice name="${voice}">${ssml}</voice>`);
+    } catch(e) { }
+  }
+  ,"emotion": function(name,intensity) {
+    try {
+      let ssml = this.response.response.outputSpeech.ssml;
+      this.clear();
+      this.say(`<amazon:emotion name="${name}" intensity="${intensity}">${ssml}</amazon:emotion>`);
     } catch(e) { }
   }
   ,"sayRandom": function(values) {
@@ -280,9 +291,10 @@ app.pre = async function (req, res) {
 	    }
       if (!user) { user = {}; }
       if (!user.experience) { user.experience={}; }
-      user.request_number = 1;
+      user.request_number = 0;
     }
   }
+  user.request_number++;
 
   // Use STATE to define the intent handler
   if (request.type()==="LaunchRequest" && typeof app.intents["launch"] !== "undefined" && typeof app.intents["launch"].handler === "function") {
@@ -319,13 +331,19 @@ app.pre = async function (req, res) {
   // Store the intent in the user record for debugging
   user.intent = request.getState();
 
+  app.user = user;
   app.log( request.getState() );
+
+  app.preprocess(request,response);
 };
 
 // ==========================================================================
 // POST
 // ==========================================================================
 app.post = async function () {
+  // Try to app post-process if it exists
+  app.postprocess(request,response);
+
   // Post-process for pluralization, etc
   try {
     let ssml = response.response.response.outputSpeech.ssml;
@@ -354,10 +372,6 @@ app.post = async function () {
   }
 };
 
-// Store the request and response on each each request, for easy access
-let request = null;
-let response = null;
-let user = null;
 function setContext(req,res) {
   request = req;
   response = res;
@@ -395,6 +409,10 @@ app.saylookup = function(val, o) {
     }
   });
 };
+
+app.preprocess = function(req,res) {};
+app.postprocess = function(req,res) {};
+
 const postprocess = function(str) {
   // Conditional text {?iftrue:then output this repacing $_ with condition?}
   str = str.replace( /\{\?([^:]+):([^?]+)\?\}/g, (m,m1,m2)=> {
@@ -436,6 +454,7 @@ const postprocess = function(str) {
   });
   // Remove multiple spaces
   str = str.replace(/\s+/g,' ');
+
   return str;
 };
 
